@@ -65,10 +65,11 @@ const fetchFinancialData = async (wallet: string, start: Date, end: Date): Promi
   }
 };
 
-export const useFinancialData = (wallet: string, start: Date, end: Date) => {
+export const useFinancialData = (wallet: string, start: Date, end: Date, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ['financial-data', wallet, start.toISOString(), end.toISOString()],
+    queryKey: ['financial-data', wallet, formatDateForAPI(start), formatDateForAPI(end)],
     queryFn: () => fetchFinancialData(wallet, start, end),
+    enabled: enabled && !!wallet,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     refetchOnWindowFocus: false,

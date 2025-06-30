@@ -1,11 +1,13 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { KPICards } from '@/components/KPICards';
 import { GaugeChart } from '@/components/GaugeChart';
 import { DonutChart } from '@/components/DonutChart';
 import { BarChart } from '@/components/BarChart';
 import { AreaChart } from '@/components/AreaChart';
+import { MonthlyTrendChart } from '@/components/MonthlyTrendChart';
+import { CategoryComparisonChart } from '@/components/CategoryComparisonChart';
 import { TransactionsTable } from '@/components/TransactionsTable';
 import { FilterSection } from '@/components/FilterSection';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -23,31 +25,81 @@ const Index = () => {
   
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
+  const [dataEnabled, setDataEnabled] = useState(true);
 
   const { data: transactions, isLoading, error, refetch } = useFinancialData(
     wallet,
     dateRange.start,
-    dateRange.end
+    dateRange.end,
+    dataEnabled
   );
 
   const handleLoadWallet = useCallback(() => {
-    console.log('Loading wallet:', wallet);
+    console.log('Loading wallet:', wallet, 'Period:', dateRange);
+    setDataEnabled(true);
     refetch();
-  }, [wallet, refetch]);
+  }, [wallet, dateRange, refetch]);
 
   const handleDateRangeChange = useCallback((newRange: DateRange) => {
+    console.log('Date range changed:', newRange);
     setDateRange(newRange);
+    setDataEnabled(true);
   }, []);
 
-  const handleExportPDF = useCallback(() => {
-    const startStr = dateRange.start.toLocaleDateString('pt-BR');
-    const endStr = dateRange.end.toLocaleDateString('pt-BR');
-    
-    // Mock PDF export functionality
-    console.log(`Exporting PDF: relatorio-financas-${startStr}-${endStr}.pdf`);
-    // In a real implementation, this would call the actual PDF generation
-    alert(`PDF seria exportado: relatorio-financas-${startStr}-${endStr}.pdf`);
-  }, [dateRange]);
+  const handleExportPDF = useCallback(async () => {
+    try {
+      const startStr = dateRange.start.toLocaleDateString('pt-BR');
+      const endStr = dateRange.end.toLocaleDateString('pt-BR');
+      
+      // Create PDF content
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.text('ZapGastos - Relatório Financeiro', 20, 30);
+      doc.setFontSize(12);
+      doc.text(`Carteira: ${wallet}`, 20, 45);
+      doc.text(`Período: ${startStr} - ${endStr}`, 20, 55);
+      
+      if (transactions && transactions.length > 0) {
+        // KPIs
+        const entradas = transactions.filter(t => t.valor > 0).reduce((sum, t) => sum + t.valor, 0);
+        const saidas = Math.abs(transactions.filter(t => t.valor < 0).reduce((sum, t) => sum + t.valor, 0));
+        const saldo = entradas - saidas;
+        
+        doc.text(`Saldo Atual: R$ ${saldo.toFixed(2)}`, 20, 75);
+        doc.text(`Entradas: R$ ${entradas.toFixed(2)}`, 20, 85);
+        doc.text(`Saídas: R$ ${saidas.toFixed(2)}`, 20, 95);
+        doc.text(`Total de Transações: ${transactions.length}`, 20, 105);
+        
+        // Transactions summary
+        doc.text('Últimas Transações:', 20, 125);
+        let yPos = 135;
+        
+        transactions.slice(0, 10).forEach((transaction, index) => {
+          if (yPos > 250) {
+            doc.addPage();
+            yPos = 30;
+          }
+          
+          const valor = transaction.valor >= 0 ? `+R$ ${transaction.valor.toFixed(2)}` : `R$ ${transaction.valor.toFixed(2)}`;
+          const line = `${transaction.timestamp.split(' ')[0]} - ${transaction.descricao} - ${valor}`;
+          doc.text(line, 20, yPos);
+          yPos += 10;
+        });
+      }
+      
+      // Save PDF
+      const fileName = `relatorio-financas-${dateRange.start.toLocaleDateString('pt-BR').replace(/\//g, '-')}-${dateRange.end.toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+      doc.save(fileName);
+      
+      console.log('PDF exported successfully:', fileName);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Erro ao exportar PDF. Tente novamente.');
+    }
+  }, [dateRange, transactions, wallet]);
 
   const handleClearFilters = useCallback(() => {
     setCategoryFilter(null);
@@ -127,6 +179,11 @@ const Index = () => {
                 onCategoryClick={setCategoryFilter}
               />
               <AreaChart transactions={transactions} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <MonthlyTrendChart transactions={transactions} />
+              <CategoryComparisonChart transactions={transactions} />
             </div>
             
             <TransactionsTable 

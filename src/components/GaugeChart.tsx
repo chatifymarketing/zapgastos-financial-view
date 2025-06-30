@@ -39,47 +39,47 @@ export const GaugeChart = ({ transactions }: GaugeChartProps) => {
       </h3>
       
       <div className="flex flex-col items-center">
-        <div className="relative w-48 h-24 mb-4">
+        <div className="relative w-56 h-32 mb-6">
           <svg
             className="w-full h-full"
-            viewBox="0 0 200 100"
+            viewBox="0 0 240 120"
             xmlns="http://www.w3.org/2000/svg"
           >
             {/* Background arc */}
             <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
+              d="M 30 90 A 90 90 0 0 1 210 90"
               fill="none"
               stroke="#E5E7EB"
-              strokeWidth="12"
+              strokeWidth="16"
               strokeLinecap="round"
             />
             
             {/* Progress arc */}
             <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
+              d="M 30 90 A 90 90 0 0 1 210 90"
               fill="none"
               stroke={getColor(clampedPercentual)}
-              strokeWidth="12"
+              strokeWidth="16"
               strokeLinecap="round"
-              strokeDasharray={`${(clampedPercentual / 100) * 251.33} 251.33`}
+              strokeDasharray={`${(clampedPercentual / 100) * 282.74} 282.74`}
               className="transition-all duration-700 ease-in-out"
             />
             
             {/* Needle */}
-            <g transform={`rotate(${angle} 100 80)`}>
+            <g transform={`rotate(${angle} 120 90)`}>
               <line
-                x1="100"
-                y1="80"
-                x2="100"
+                x1="120"
+                y1="90"
+                x2="120"
                 y2="20"
                 stroke="#374151"
-                strokeWidth="2"
+                strokeWidth="3"
                 strokeLinecap="round"
               />
               <circle
-                cx="100"
-                cy="80"
-                r="4"
+                cx="120"
+                cy="90"
+                r="6"
                 fill="#374151"
               />
             </g>
@@ -87,12 +87,15 @@ export const GaugeChart = ({ transactions }: GaugeChartProps) => {
         </div>
         
         <div className="text-center">
-          <div className="text-3xl font-bold mb-2" style={{ color: getColor(clampedPercentual) }}>
+          <div className="text-3xl font-bold mb-3" style={{ color: getColor(clampedPercentual) }}>
             {clampedPercentual.toFixed(1)}%
           </div>
           <div className="text-sm text-gray-600 space-y-1">
             <div>Gastos: {formatCurrency(saidas)}</div>
             <div>Disponível: {formatCurrency(total)}</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Saldo restante: {formatCurrency(Math.max(0, total - saidas))}
+            </div>
           </div>
         </div>
       </div>

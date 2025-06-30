@@ -25,7 +25,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
       formatted: formatCurrency(valor)
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10); // Top 10 categories
+    .slice(0, 8); // Top 8 categories
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -57,7 +57,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
             <RechartsBarChart
               data={chartData}
               layout="horizontal"
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 5, right: 30, left: 60, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
@@ -68,8 +68,9 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
               <YAxis 
                 type="category" 
                 dataKey="name" 
-                width={80}
+                width={100}
                 fontSize={12}
+                tick={{ fill: '#374151' }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar 
@@ -78,6 +79,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
                 radius={[0, 4, 4, 0]}
                 onClick={(data) => onCategoryClick(data.name)}
                 className="cursor-pointer hover:opacity-80"
+                minPointSize={5}
               />
             </RechartsBarChart>
           </ResponsiveContainer>
