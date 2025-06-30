@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { Transaction } from '@/types/financial';
+import { Transaction, ApiResponse } from '@/types/financial';
 
 const API_ENDPOINT = 'https://hook2.chatify.marketing/webhook/financas';
 
@@ -44,13 +44,21 @@ const fetchFinancialData = async (wallet: string, start: Date, end: Date): Promi
 
     const data = await response.json();
     
-    // Handle empty response
-    if (!data || !Array.isArray(data)) {
-      console.warn('API returned non-array data:', data);
-      return [];
+    // Handle the new nested response structure
+    if (Array.isArray(data) && data.length > 0 && data[0].response) {
+      // New format: array with response object
+      const apiResponse = data[0] as ApiResponse;
+      if (apiResponse.response && Array.isArray(apiResponse.response.body)) {
+        return apiResponse.response.body;
+      }
+    } else if (Array.isArray(data)) {
+      // Fallback to direct array format
+      return data;
     }
 
-    return data;
+    // Handle empty or unexpected response
+    console.warn('API returned unexpected data format:', data);
+    return [];
   } catch (error) {
     console.error('Error fetching financial data:', error);
     throw error;

@@ -1,9 +1,10 @@
 
-export const parseValue = (valueStr: string): number => {
-  if (!valueStr || typeof valueStr !== 'string') return 0;
+export const parseValue = (value: number | string): number => {
+  if (typeof value === 'number') return value;
+  if (!value || typeof value !== 'string') return 0;
   
   // Remove "R$", spaces, and convert comma to dot
-  const cleanValue = valueStr
+  const cleanValue = value
     .replace(/R\$\s?/g, '')
     .replace(/\./g, '') // Remove thousand separators
     .replace(',', '.') // Convert decimal comma to dot
@@ -21,15 +22,15 @@ export const formatCurrency = (value: number): string => {
 };
 
 export const formatDate = (dateStr: string): string => {
-  // Input format: DD-MM-YYYY HH:mm:ss
+  // Input format: DD/MM/YYYY HH:mm:ss
   // Output format: DD/MM HH:mm
   const parts = dateStr.split(' ');
   if (parts.length !== 2) return dateStr;
   
-  const datePart = parts[0]; // DD-MM-YYYY
+  const datePart = parts[0]; // DD/MM/YYYY
   const timePart = parts[1]; // HH:mm:ss
   
-  const dateComponents = datePart.split('-');
+  const dateComponents = datePart.split('/');
   if (dateComponents.length !== 3) return dateStr;
   
   const timeComponents = timePart.split(':');
@@ -39,12 +40,12 @@ export const formatDate = (dateStr: string): string => {
 };
 
 export const parseDateString = (dateStr: string): Date => {
-  // Input format: DD-MM-YYYY HH:mm:ss
+  // Input format: DD/MM/YYYY HH:mm:ss
   const parts = dateStr.split(' ');
-  const datePart = parts[0]; // DD-MM-YYYY
+  const datePart = parts[0]; // DD/MM/YYYY
   const timePart = parts[1] || '00:00:00'; // HH:mm:ss
   
-  const [day, month, year] = datePart.split('-').map(Number);
+  const [day, month, year] = datePart.split('/').map(Number);
   const [hour, minute, second] = timePart.split(':').map(Number);
   
   return new Date(year, month - 1, day, hour || 0, minute || 0, second || 0);

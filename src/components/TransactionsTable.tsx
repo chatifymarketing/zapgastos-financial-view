@@ -37,8 +37,8 @@ export const TransactionsTable = ({
 
     // Sort by timestamp (newest first)
     filtered.sort((a, b) => {
-      const dateA = new Date(a.timestamp.split(' ')[0].split('-').reverse().join('-'));
-      const dateB = new Date(b.timestamp.split(' ')[0].split('-').reverse().join('-'));
+      const dateA = new Date(a.timestamp.split(' ')[0].split('/').reverse().join('-'));
+      const dateB = new Date(b.timestamp.split(' ')[0].split('/').reverse().join('-'));
       return dateB.getTime() - dateA.getTime();
     });
 
@@ -104,7 +104,7 @@ export const TransactionsTable = ({
                 const isPositive = valor >= 0;
                 
                 return (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <tr key={`${transaction.row_number}-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(transaction.timestamp)}
                     </td>

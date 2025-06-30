@@ -1,10 +1,24 @@
 
 export interface Transaction {
-  timestamp: string; // DD-MM-YYYY HH:mm:ss
-  descricao: string;
+  row_number: number;
+  wallet: number;
+  timestamp: string; // DD/MM/YYYY HH:mm:ss
+  phone: number;
+  valor: number; // Now comes as number instead of string
   categoria: string;
+  descricao: string;
   pagamento: string;
-  valor: string; // "-R$ 50,00" format
+  name: string;
+}
+
+export interface ApiResponse {
+  response: {
+    body: Transaction[];
+    headers: {
+      'content-type': string;
+    };
+    statusCode: number;
+  };
 }
 
 export interface DateRange {
