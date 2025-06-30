@@ -1,13 +1,9 @@
 
 import { DateRange } from '@/types/financial';
-import { Calendar, Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { DateRangePicker } from '@/components/DateRangePicker';
 
 interface FilterSectionProps {
   wallet: string;
@@ -55,45 +51,10 @@ export const FilterSection = ({
         </div>
 
         {/* Date Range Picker */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
-            Período
-          </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !dateRange && "text-muted-foreground"
-                )}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {dateRange?.start && dateRange?.end ? (
-                  `${format(dateRange.start, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.end, "dd/MM/yyyy", { locale: ptBR })}`
-                ) : (
-                  <span>Selecione o período</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="range"
-                selected={{
-                  from: dateRange.start,
-                  to: dateRange.end
-                }}
-                onSelect={(range) => {
-                  if (range?.from && range?.to) {
-                    onDateRangeChange({ start: range.from, end: range.to });
-                  }
-                }}
-                numberOfMonths={2}
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <DateRangePicker 
+          dateRange={dateRange}
+          onDateRangeChange={onDateRangeChange}
+        />
 
         {/* Search Filter */}
         <div className="space-y-2">

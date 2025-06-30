@@ -1,5 +1,5 @@
-
 import { useState, useCallback } from 'react';
+import { startOfMonth, endOfMonth } from 'date-fns';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { KPICards } from '@/components/KPICards';
 import { GaugeChart } from '@/components/GaugeChart';
@@ -17,10 +17,11 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 const Index = () => {
   const [wallet, setWallet] = useState('5548998343320');
   const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
-    return { start, end };
+    // Default to "Este mês" (current month)
+    return { 
+      start: startOfMonth(new Date()), 
+      end: endOfMonth(new Date()) 
+    };
   });
   
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
