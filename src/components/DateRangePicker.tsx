@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subDays, subMonths, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subDays, subMonths, startOfYear, endOfYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DateRange } from '@/types/financial';
 
@@ -117,9 +117,9 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <div className="flex">
+          <div className="flex flex-col sm:flex-row">
             {/* Presets */}
-            <div className="border-r p-3 space-y-1 min-w-[160px]">
+            <div className="border-b sm:border-b-0 sm:border-r p-3 space-y-1 min-w-[140px]">
               <div className="text-sm font-medium text-gray-700 mb-2">Períodos</div>
               {presetRanges.map((preset) => (
                 <button
@@ -149,17 +149,17 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
                     setSelectedPreset('Personalizado');
                   }
                 }}
-                numberOfMonths={2}
+                numberOfMonths={1}
                 className="pointer-events-auto"
                 locale={ptBR}
               />
               
               {/* Custom date inputs */}
               <div className="border-t pt-3 mt-3 space-y-2">
-                <div className="text-sm font-medium text-gray-700">Período personalizado</div>
+                <div className="text-sm font-medium text-gray-700">Personalizado</div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-500">Data inicial</label>
+                    <label className="text-xs text-gray-500">Início</label>
                     <Input
                       type="date"
                       value={tempRange.start ? format(tempRange.start, 'yyyy-MM-dd') : ''}
@@ -169,11 +169,11 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
                           setSelectedPreset('Personalizado');
                         }
                       }}
-                      className="text-xs"
+                      className="text-xs h-8"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500">Data final</label>
+                    <label className="text-xs text-gray-500">Fim</label>
                     <Input
                       type="date"
                       value={tempRange.end ? format(tempRange.end, 'yyyy-MM-dd') : ''}
@@ -183,7 +183,7 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
                           setSelectedPreset('Personalizado');
                         }
                       }}
-                      className="text-xs"
+                      className="text-xs h-8"
                     />
                   </div>
                 </div>

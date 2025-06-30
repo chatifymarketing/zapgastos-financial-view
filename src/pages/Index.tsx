@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+
+import { useState, useCallback, useRef } from 'react';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { KPICards } from '@/components/KPICards';
@@ -17,7 +18,6 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 const Index = () => {
   const [wallet, setWallet] = useState('5548998343320');
   const [dateRange, setDateRange] = useState<DateRange>(() => {
-    // Default to "Este mês" (current month)
     return { 
       start: startOfMonth(new Date()), 
       end: endOfMonth(new Date()) 
@@ -27,6 +27,7 @@ const Index = () => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
   const [dataEnabled, setDataEnabled] = useState(true);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { data: transactions, isLoading, error, refetch } = useFinancialData(
     wallet,
@@ -48,59 +49,52 @@ const Index = () => {
   }, []);
 
   const handleExportPDF = useCallback(async () => {
+    if (!dashboardRef.current || !transactions) {
+      alert('Nenhum dado para exportar');
+      return;
+    }
+
     try {
-      const startStr = dateRange.start.toLocaleDateString('pt-BR');
-      const endStr = dateRange.end.toLocaleDateString('pt-BR');
-      
-      // Create PDF content
       const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Capturar o dashboard como imagem
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#f9fafb'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Calcular dimensões para caber na página
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 30;
       
       // Header
-      doc.setFontSize(20);
-      doc.text('ZapGastos - Relatório Financeiro', 20, 30);
-      doc.setFontSize(12);
-      doc.text(`Carteira: ${wallet}`, 20, 45);
-      doc.text(`Período: ${startStr} - ${endStr}`, 20, 55);
+      pdf.setFontSize(20);
+      pdf.text('ZapGastos - Relatório Financeiro', 20, 20);
       
-      if (transactions && transactions.length > 0) {
-        // KPIs
-        const entradas = transactions.filter(t => t.valor > 0).reduce((sum, t) => sum + t.valor, 0);
-        const saidas = Math.abs(transactions.filter(t => t.valor < 0).reduce((sum, t) => sum + t.valor, 0));
-        const saldo = entradas - saidas;
-        
-        doc.text(`Saldo Atual: R$ ${saldo.toFixed(2)}`, 20, 75);
-        doc.text(`Entradas: R$ ${entradas.toFixed(2)}`, 20, 85);
-        doc.text(`Saídas: R$ ${saidas.toFixed(2)}`, 20, 95);
-        doc.text(`Total de Transações: ${transactions.length}`, 20, 105);
-        
-        // Transactions summary
-        doc.text('Últimas Transações:', 20, 125);
-        let yPos = 135;
-        
-        transactions.slice(0, 10).forEach((transaction, index) => {
-          if (yPos > 250) {
-            doc.addPage();
-            yPos = 30;
-          }
-          
-          const valor = transaction.valor >= 0 ? `+R$ ${transaction.valor.toFixed(2)}` : `R$ ${transaction.valor.toFixed(2)}`;
-          const line = `${transaction.timestamp.split(' ')[0]} - ${transaction.descricao} - ${valor}`;
-          doc.text(line, 20, yPos);
-          yPos += 10;
-        });
-      }
+      // Adicionar imagem do dashboard
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
       
-      // Save PDF
-      const fileName = `relatorio-financas-${dateRange.start.toLocaleDateString('pt-BR').replace(/\//g, '-')}-${dateRange.end.toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
-      doc.save(fileName);
+      // Salvar PDF
+      const fileName = `relatorio-zapgastos-${dateRange.start.toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+      pdf.save(fileName);
       
-      console.log('PDF exported successfully:', fileName);
+      console.log('PDF exportado com sucesso:', fileName);
     } catch (error) {
-      console.error('Error exporting PDF:', error);
+      console.error('Erro ao exportar PDF:', error);
       alert('Erro ao exportar PDF. Tente novamente.');
     }
-  }, [dateRange, transactions, wallet]);
+  }, [dateRange, transactions]);
 
   const handleClearFilters = useCallback(() => {
     setCategoryFilter(null);
@@ -163,7 +157,7 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <>
+          <div ref={dashboardRef} className="space-y-6">
             <KPICards transactions={transactions} />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -192,7 +186,7 @@ const Index = () => {
               categoryFilter={categoryFilter}
               searchFilter={searchFilter}
             />
-          </>
+          </div>
         )}
       </div>
     </div>

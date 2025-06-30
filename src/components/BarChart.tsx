@@ -9,8 +9,16 @@ interface BarChartProps {
 }
 
 export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
+  // Filtrar apenas receitas (valores positivos) e excluir categorias relacionadas a dívidas
   const revenueByCategory = transactions
-    .filter(t => parseValue(t.valor) > 0)
+    .filter(t => {
+      const valor = parseValue(t.valor);
+      const categoria = t.categoria?.toLowerCase() || '';
+      return valor > 0 && 
+             !categoria.includes('divida') && 
+             !categoria.includes('emprestimo') && 
+             !categoria.includes('financiamento');
+    })
     .reduce((acc, transaction) => {
       const categoria = transaction.categoria || 'Outros';
       const valor = parseValue(transaction.valor);
@@ -25,7 +33,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
       formatted: formatCurrency(valor)
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 8); // Top 8 categories
+    .slice(0, 8);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -44,7 +52,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
   return (
     <div className="bg-white rounded-lg shadow-soft p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Receitas por fonte
+        Receitas por categoria
       </h3>
       
       {chartData.length === 0 ? (
@@ -57,7 +65,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
             <RechartsBarChart
               data={chartData}
               layout="horizontal"
-              margin={{ top: 5, right: 30, left: 60, bottom: 5 }}
+              margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
@@ -68,7 +76,7 @@ export const BarChart = ({ transactions, onCategoryClick }: BarChartProps) => {
               <YAxis 
                 type="category" 
                 dataKey="name" 
-                width={100}
+                width={70}
                 fontSize={12}
                 tick={{ fill: '#374151' }}
               />
